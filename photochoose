@@ -1,0 +1,305 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include"dirent.h"
+#include<direct.h>
+#include<errno.h>
+#define maxx 512
+typedef struct address{
+	char array[maxx] ;
+	struct address* next;
+}address;
+//照片复制
+void photocopy(char* fname0,char* fname1) {
+	char ch;
+	FILE* p1, * p2;//定义两个文件类型的指针
+
+	if ((p1 = fopen(fname0, "rb")) == NULL)/*fopen用rb(二进制读取) 的方式打开文件
+		若能够正确打开文件，则将用指针p1指向该文件，若不能正确打开，则返回空指针
+		即，将p1指向一个空指针。*/
+	{
+		printf("文件1打开发生错误！");
+		exit(0); //exit(0)函数可以终止程序，头文件为#include<stdlib.h >
+	}
+
+	if ((p2 = fopen(fname1, "wb+")) == NULL)//同上 ，但以wb+(二进制写入)方式打开文件 
+	{
+		printf("文件2打开发生错误！");
+		exit(0);
+	}
+	while (!feof(p1))/*feof(p1)判断指针p1是否到达p1所指文件结尾，
+					即判断文件p1是否到达结束状态 ，若到达结束状态则返回值1(真)，反之，返回值为0(假)*/
+	{
+		ch = fgetc(p1);//在一个p1所指文件中读取一个字符并且将指针指向下一个字符 
+		fputc(ch, p2);//将ch字符储存在文件p2，并将指针下移 
+	}
+	fclose(p1);//关闭文件 
+	fclose(p2);
+}
+int main()
+{
+	//将文件后缀不同的分到两个文件夹
+	char arr[maxx] = {0
+}, arr1[100] = { 0
+	}, arr2[maxx] = { 0 };
+	int p = 1,q=1;
+	printf("请输入你要进行区分的文件夹的绝对路径：");
+	scanf("\"%s", arr);
+	arr[strlen(arr) - 1] = '\0';
+	for (int m = 0; m < strlen(arr); m++) {
+		if (arr[m] == '\\') {
+			for (int n = strlen(arr); n >= m; n--) {
+				arr[n + 1] = arr[n];
+			}
+			m++;
+		}
+
+	}
+	printf("%s\n", arr);
+	char arr1_1[maxx] = { 0 }, arr2_1[maxx] = { 0 };
+	for (int i = 0; i < strlen(arr); i++) {
+		arr1[i] = arr[i];
+		arr2[i] = arr[i];
+		arr1_1[i] = arr[i];
+		arr2_1[i] = arr[i];
+	}
+	char arr1_2[maxx] = { 0 }, arr2_2[maxx] = {0};
+	int g = strlen(arr);
+	char ex1[] = "\\\\.jpgfile";
+	char ex2[] = "\\\\.CR3file";
+	strcat(arr1_1, ex1);
+	strcat(arr2_1, ex2);
+	for (int i = 0; i < strlen(arr1_1); i++) {
+		arr1_2[i] = arr1_1[i];
+		arr2_2[i] = arr2_1[i];
+	}
+	strcat(arr1_1, "\\\\");
+	strcat(arr2_1, "\\\\");
+	int h = strlen(arr2_1);
+	DIR* dir1 = opendir(arr);
+	if (dir1 == NULL)
+		printf("erro1r");
+	struct dirent* dir1_ = readdir(dir1);
+	int a = _mkdir(arr1_1);
+	int b = _mkdir(arr2_1);
+	while ((dir1_ = readdir(dir1)) != NULL) {
+		if (strcmp(dir1_->d_name+strlen(dir1_->d_name)-3,"jpg")==0 || strcmp(dir1_->d_name+strlen(dir1_->d_name) - 3, "JPG")==0) {
+			char qe[100] = "\\\\";
+			strcat(qe, dir1_->d_name);
+			strcpy(arr1_1+h, dir1_->d_name);
+			strcpy(arr1+g, qe);
+			printf("arr1:%s\n", arr1);
+			printf("arr1_1:%s\n", arr1_1);
+			photocopy(arr1, arr1_1);
+			p++;
+			remove(arr1);
+		}
+		else if(strcmp(dir1_->d_name+strlen(dir1_->d_name) - 3, "CR3") == 0 || strcmp(dir1_->d_name+strlen(dir1_->d_name) - 3, "cr3") == 0) {
+			char er[100] = "\\\\";
+			strcat(er, dir1_->d_name);
+			strcpy(arr2_1+h, dir1_->d_name);
+			strcpy(arr2 + g, er);
+			printf("arr2:%s\n", arr2);
+			printf("arr2_1:%s\n", arr2_1);
+			photocopy(arr2, arr2_1);
+			q++;
+			remove(arr2);
+		}
+	}
+	closedir(dir1);
+	printf("\n是否进行筛选：1.是    0.否\n");
+	/*用户输入()结尾的照片的名字，将输入的保留，其他的删除，对两文件夹做相同操作*/
+	int x,z,z1,z2,s=0;
+	char l = 0;
+	char array1[maxx] = { 0 };
+	address* Address = (address*)malloc(sizeof(address));
+	Address->next = NULL;
+	Address->array[0] = '\0';
+	address* AddressStart = Address;
+	address* AddressRepeat = Address;
+	again:
+	z=scanf("%d", &x);
+	while ((l = getchar()) != '\n' && l != EOF);
+	if (z == 1) {
+		if (x == 1) {
+			printf("\n请输入您挑选出来.jpg格式的照片的地址（输入一个后按回车再继续输入，如果想结束输入就输入666后按回车）：\n");
+			scanf("%s", array1);
+			for (int m = 0; m < strlen(array1); m++) {
+				if (array1[m] == '\\') {
+					for (int n = strlen(array1); n >= m; n--) {
+						array1[n + 1] = array1[n];
+					}
+					m++;
+				}
+			}
+			if (array1[0] == '\"') {
+				for (int i = 0; i < strlen(array1)-1; i++) {
+					array1[i] = array1[i + 1];
+				}
+				array1[strlen(array1) - 2] = '\0';
+			}
+			while (strcmp(array1, "666" )!=0) {
+				strcpy(Address->array, array1);
+				Address->next = (address*)malloc(sizeof(address));
+				Address = Address->next;
+				Address->array[0] = '\0';
+				Address->next = NULL;
+				scanf("%s", array1);
+				if (array1[0] == '\"') {
+					for (int i = 0; i < strlen(array1) - 1; i++) {
+						array1[i] = array1[i + 1];
+					}
+					array1[strlen(array1) - 2] = '\0';
+				}
+				for (int m = 0; m < strlen(array1); m++) {
+					if (array1[m] == '\\') {
+						for (int n = strlen(array1); n >= m; n--) {
+							array1[n + 1] = array1[n];
+						}
+						m++;
+					}
+				}
+				while ((l = getchar()) != '\n' && l != EOF);
+			}
+		again2:
+			system("cls");
+			printf("\n是否要选择以下照片并删除其他照片\n1.是    0.否(需要进行修改)    6.退出程序");
+			int o = 1;
+			while (AddressRepeat->next != NULL) {
+				printf("\n%d:%s", o, AddressRepeat->array);
+				AddressRepeat = AddressRepeat->next;
+				o++;
+			}
+			AddressRepeat = AddressStart;
+			printf("\n");
+		again1:
+			z1 = scanf("%d", &x);
+			while ((l = getchar()) != '\n' && l != EOF);
+			if (z1 == 1) {
+				if (x == 1) {
+					DIR* dir2 = opendir(arr1_2);
+					if (dir2 == NULL) {
+						printf("error2,无法打开：%s\n", arr1_2);
+						switch (errno) {
+						case EACCES:
+							printf("权限不足\n");
+							break;
+						case EMFILE:
+							printf("已达到进程可同时打开的文件数上限\n");
+							break;
+						case ENOENT:
+							printf("参数name 指定的目录不存在, 或是参数name 为一空字符串\n");
+							break;
+						case ENOTDIR:
+							printf("'%s' is not a directory\n", arr2_2);
+							break;
+						case ENOMEM:
+							printf("核心内存不足\n");
+						}
+					}
+					else {
+						struct dirent* dir2_ = readdir(dir2);
+						while ((dir2_ = readdir(dir2)) != NULL) {
+							strcpy(arr1_1 + h, dir2_->d_name);
+							while (AddressRepeat->next != NULL) {
+								if (strcmp(AddressRepeat->array, arr1_1) == 0) {
+									break;
+								}
+								AddressRepeat = AddressRepeat->next;
+							}
+							if (AddressRepeat->next == NULL) {
+								remove(arr1_1);
+								printf("删除%s成功\n", arr1_1);
+							}
+							AddressRepeat = AddressStart;
+						}
+						closedir(dir2);
+					}
+					DIR* dir3 = opendir(arr2_2);
+					if (dir3 == NULL) {
+						printf("error3,无法打开：%s\n", arr2_2);
+						switch (errno) {
+						case EACCES:
+							printf("权限不足\n");
+							break;
+						case EMFILE:
+							printf("已达到进程可同时打开的文件数上限\n");
+							break;
+						case ENOENT:
+							printf("参数name 指定的目录不存在, 或是参数name 为一空字符串\n");
+							break;
+						case ENOTDIR:
+							printf("'%s' is not a directory\n", arr2_2);
+							break;
+						case ENOMEM:
+							printf("核心内存不足\n");
+						}
+					}
+					else {
+						struct dirent* dir3_ = readdir(dir3);
+						while ((dir3_ = readdir(dir3)) != NULL) {
+							strcpy(arr2_1 + h, dir3_->d_name);
+							strcpy(dir3_->d_name + strlen(dir3_->d_name) - 3, "JPG");
+							strcpy(arr1_1 + h, dir3_->d_name);
+							while (AddressRepeat->next != NULL) {
+								if (strcmp(AddressRepeat->array, arr1_1) == 0) {
+									break;
+								}
+								AddressRepeat = AddressRepeat->next;
+							}
+							if (AddressRepeat->next == NULL) {
+								remove(arr2_1);
+								printf("删除%s成功\n", arr2_1);
+							}
+							AddressRepeat = AddressStart;
+						}
+					}
+				}
+				else if (x == 0) {
+					printf("\n请输入你要修改的序号：");
+					z2 = scanf("%d", &x);
+					while ((p = getchar()) != '\n' && l != EOF);
+					if (z2 == 1) {
+						if (x <= o) {
+							printf("\n你要修改为：");
+							scanf("%s", array1);
+							for (int i = 1; i < x; i++) {
+								AddressRepeat = AddressRepeat->next;
+							}
+							if (array1[0] == '\"') {
+								for (int i = 0; i < strlen(array1) - 1; i++) {
+									array1[i] = array1[i + 1];
+								}
+								array1[strlen(array1) - 2] = '\0';
+							}
+							strcpy(AddressRepeat->array, array1);
+							AddressRepeat = AddressStart;
+							goto again2;
+						}
+					}
+				}
+				else if (x == 6) {
+					return 0;
+				}
+				else {
+					printf("\n无此选项，请重新输入：");
+					goto again1;
+				}
+			}
+			else {
+				printf("\n输入错误，请重新输入：");
+				goto again1;
+			}
+		}
+		else if (x == 0) {
+				return 0;
+			}
+		else {
+				printf("\n无此选项，请重新输入：");
+				goto again;
+			}
+	}
+	getchar();
+	return 0;
+}
